@@ -1,8 +1,6 @@
-FROM alpine:3.10
+FROM alpine:$ALPINE_VERSION
 
 LABEL maintainer="Jose Quintana <joseluisq.net>"
-
-ARG SERVER_VERSION="latest"
 
 RUN apk --no-cache add ca-certificates tzdata
 RUN set -ex; \
@@ -16,7 +14,6 @@ RUN set -ex; \
 
 COPY ./bin/static-web-server /usr/local/bin/
 COPY ./public /public
-RUN chmod +x /usr/local/bin/static-web-server
 EXPOSE 80
 CMD ["static-web-server"]
 
@@ -25,5 +22,5 @@ LABEL org.opencontainers.image.vendor="Jose Quintana" \
     org.opencontainers.image.url="https://git.joseluisq.net/joseluisq/static-web-server" \
     org.opencontainers.image.title="Static Web Server" \
     org.opencontainers.image.description="A blazing fast web server to static files-serving powered by Rust." \
-    org.opencontainers.image.version="${SERVER_VERSION}" \
+    org.opencontainers.image.version="$VERSION" \
     org.opencontainers.image.documentation="https://git.joseluisq.net/joseluisq/static-web-server"

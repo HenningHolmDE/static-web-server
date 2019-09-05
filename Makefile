@@ -1,21 +1,13 @@
-PKG_NAME=static-web-server
 PKG_TARGET=x86_64-unknown-linux-musl
 PKG_BIN_PATH=./bin
-PKG_TAG=1.0.0-beta.1
 
-help:
-	@echo
-	@echo "Static Web Server"
-	@echo "A fast web server to static files-serving powered by Rust Iron. 🚀"
-	@echo
-	@echo "Development:"
-	@echo "Please use \`make <target>\` where <target> is one of:"
-	@echo "    install           to install dependencies."
-	@echo "    run               to run server in development."
-	@echo "    watch             to run server (watch files mode) in development."
-	@echo "    release           to build a release."
-	@echo "    docker_image      to build a Docker image."
-	@echo
+PKG_NAME=$(shell cat Cargo.toml | sed -n 's/name = "\([^}]*\)"/\1/p')
+PKG_TAG=$(shell cat Cargo.toml | sed -n 's/version = "\([^}]*\)"/\1/p')
+
+
+#######################################
+############# Development #############
+#######################################
 
 install:
 	@rustup target add $(PKG_TARGET)
@@ -27,33 +19,18 @@ run:
 	@cargo make --makefile Tasks.Dev.toml run
 .PHONY: run
 
-test:
-	@echo "There are no tests at the moment!"
-.PHONY: test
-
 watch:
 	@cargo make --makefile Tasks.Dev.toml watch
 .PHONY: watch
 
-release:
-	@sudo chown -R rust:rust ./
-	@cargo build --release
-.PHONY: release
 
-optimize:
-	@mkdir -p $(PKG_BIN_PATH)
-	@cp -rf ./target/$(PKG_TARGET)/release/$(PKG_NAME) $(PKG_BIN_PATH)
-	@echo "Size before:"
-	@du -sh $(PKG_BIN_PATH)/$(PKG_NAME)
-	@strip $(PKG_BIN_PATH)/$(PKG_NAME)
-	@echo "Size after:"
-	@du -sh $(PKG_BIN_PATH)/$(PKG_NAME)
-.PHONY: optimize
+#######################################
+########### Utility tasks #############
+#######################################
 
-release-files:
-	@cd $(PKG_BIN_PATH) && \
-	tar -czvf $(PKG_NAME)-v$(PKG_TAG)-x86_64-$(PKG_TARGET).tar.gz $(PKG_NAME)
-.PHONY: release-files
+test:
+	@cargo test
+.PHONY: test
 
 docker.image.alpine:
 	@docker build \
@@ -61,17 +38,85 @@ docker.image.alpine:
 		--build-arg SERVER_VERSION="alpine" -t ${PKG_NAME}:alpine . --pull=true
 .PHONY: docker.image.alpine
 
-docker.image:
-	@cargo make --makefile Tasks.Prod.toml docker_image
-.PHONY: docker.image
 
-docker.image.tag:
-	@git push --delete origin latest
-	@git tag -d latest
-	@git tag latest
-	@git push origin --tags
-.PHONY: docker.image.tag
+#######################################
+########## Production tasks ###########
+#######################################
 
-load_test:
-	@cargo make --makefile Tasks.Dev.toml loadtest
-.PHONY: load_test
+# Compile release binary 
+define build_release =
+	set -e
+	set -u
+
+	sudo chown -R rust:rust ./
+	cargo build --release --target $(PKG_TARGET)
+	echo "Release build completed!"
+endef
+
+# Shrink a release binary size
+define build_release_shrink =
+	set -e
+	set -u
+
+	mkdir -p $(PKG_BIN_PATH)
+	cp -rf ./target/$(PKG_TARGET)/release/$(PKG_NAME) $(PKG_BIN_PATH)
+	echo "Size before:"
+	du -sh $(PKG_BIN_PATH)/$(PKG_NAME)
+	strip $(PKG_BIN_PATH)/$(PKG_NAME)
+	echo "Size after:"
+	du -sh $(PKG_BIN_PATH)/$(PKG_NAME)
+	echo "Release size shrinking completed!"
+endef
+
+# Creates release files (tarballs, zipballs) 
+define build_release_files =
+	set -e
+	set -u
+
+	cd $(PKG_BIN_PATH) && \
+		tar -czvf $(PKG_NAME)-v$(PKG_TAG)-x86_64-$(PKG_TARGET).tar.gz $(PKG_NAME)
+	du -sh ./*
+	echo "Release tarball/zipball files created!"
+endef
+
+# Update docker files to latest tag per platform
+define release_dockerfiles =
+	./scripts/version.sh $(PKG_TAG)
+endef
+
+prod.release:
+	set -e
+	set -u
+
+	$(build_release)
+	$(build_release_shrink)
+	$(build_release_files)
+.ONESHELL: prod.release
+
+prod.release.build:
+	@$(build_release)
+.ONESHELL: prod.release.build
+
+prod.release.shrink:
+	@$(build_release_shrink)
+.ONESHELL: prod.release.shrink
+
+prod.release.files:
+	@$(build_release_files)
+.ONESHELL: prod.release.files
+
+prod.release.tag:
+	git tag -d latest
+	git push --delete origin latest
+	@$(release_dockerfiles)
+	git add .
+	git commit . -m "$(PKG_TAG)"
+	git tag latest
+	git tag $(PKG_TAG)
+	git push
+	git push origin --tags
+.ONESHELL: prod.release.tag
+
+prod.release.dockerfiles:
+	@$(release_dockerfiles)
+.ONESHELL: prod.release.dockerfiles
