@@ -83,21 +83,21 @@ pipeline:
             branch: master
             event: tag
 
-    publish-github-release:
-        image: plugins/github-release
-        group: production
-        api_key:
-            from_secret: github_token
-        files:
-            - ./bin/*.tar.gz
-            - ./bin/*.zip
-        prerelease: true
-        checksum:
-            - md5
-            - sha1
-        when:
-            branch: master
-            event: tag
+    # publish-github-release:
+    #     image: plugins/github-release
+    #     group: production
+    #     api_key:
+    #         from_secret: github_token
+    #     files:
+    #         - ./bin/*.tar.gz
+    #         - ./bin/*.zip
+    #     prerelease: true
+    #     checksum:
+    #         - md5
+    #         - sha1
+    #     when:
+    #         branch: master
+    #         event: tag
 
     publish-image-scratch-docker-hub:
         image: plugins/docker
