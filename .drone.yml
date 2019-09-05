@@ -17,7 +17,7 @@ pipeline:
         commands:
             - make test
         when:
-            branch: develop
+            event: push
 
     # PRODUCTION
 
@@ -25,7 +25,6 @@ pipeline:
         image: ekidd/rust-musl-builder:stable
         group: production
         commands:
-            - make test
             - make prod.release
         when:
             branch: master
