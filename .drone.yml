@@ -124,8 +124,6 @@ pipeline:
             from_secret: dockerhub_password
         auto_tag: true
         auto_tag_suffix: alpine
-        build_args:
-            - SERVER_VERSION=${DRONE_TAG}-alpine
         when:
             branch: master
             event: tag
