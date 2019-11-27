@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 #[derive(Deserialize, Debug)]
 pub struct Config {
     #[serde(default = "default_name")]

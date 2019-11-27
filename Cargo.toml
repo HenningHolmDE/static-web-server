@@ -2,17 +2,12 @@
 name = "static-web-server"
 version = "1.0.0-beta.1"
 authors = ["Jose Quintana <https://git.io/joseluisq>"]
+publish = false
 
 [dependencies]
-iron = ">= 0.5, < 0.7"
-log = "0.4"
-chrono = "0.4"
-env_logger = "0.5"
-playground-middleware = { git = "https://github.com/integer32llc/playground-middleware.git" }
-envy = "0.3"
-serde = "1.0"
-serde_derive = "1.0"
-flate2 = "1.0"
+gotham = "0.4"
+envy = "0.4"
+serde = { version = "1.0", features = ["derive"] }
 
 [profile.release]
 lto = true
