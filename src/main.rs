@@ -16,13 +16,6 @@ fn default_file_opts(path: &str) -> FileOptions {
         .build()
 }
 
-fn assets_file_opts(path: &str) -> FileOptions {
-    FileOptions::new(&path)
-        .with_cache_control("no-cache")
-        .with_gzip(true)
-        .build()
-}
-
 pub fn main() {
     let config = envy::prefixed("SERVER_")
         .from_env::<Config>()
@@ -40,10 +33,9 @@ pub fn main() {
     let router = build_simple_router(|route| {
         route.get("/").to_file(default_file_opts(&_index));
         route.get("/*").to_dir(default_file_opts(&config.root));
-
         route
-            .get("/assets/*")
-            .to_dir(assets_file_opts(&config.assets));
+            .get("assets/*")
+            .to_dir(default_file_opts(&config.assets));
     });
 
     gotham::start(_addr, router)

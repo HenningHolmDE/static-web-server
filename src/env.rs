@@ -27,9 +27,9 @@ pub fn default_port() -> u16 {
 }
 
 pub fn default_root() -> String {
-    "./public".to_string()
+    "public".to_string()
 }
 
 pub fn default_assets() -> String {
-    "./assets".to_string()
+    format!("{}/{}", default_root().to_string(), "assets".to_string())
 }
