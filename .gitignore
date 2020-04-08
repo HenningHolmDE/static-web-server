@@ -5,6 +5,11 @@
 /*.html
 **/*.bin
 **/*.iml
+**/*.txt
+**/*.zip
+**/*.tar.gz
+**/*.tar
+**/*.gz
 **/.idea
 **/.DS_Store
 release

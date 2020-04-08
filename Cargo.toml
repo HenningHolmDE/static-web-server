@@ -18,22 +18,18 @@ keywords = [
 ]
 categories = ["network-programming", "web-programming::http-server"]
 edition = "2018"
+publish = false
 include = ["src/**/*", "Cargo.toml", "Cargo.lock"]
 
 [dependencies]
-iron = "0.6"
-log = "0.4"
-chrono = "0.4"
-env_logger = "0.7"
+gotham = "0.4.0"
 structopt = "0.3"
-flate2 = "1.0"
-iron_staticfile_middleware = { git = "https://github.com/joseluisq/iron-staticfile-middleware.git" }
-hyper-native-tls = "0.3"
 nix = "0.14"
 signal = "0.7"
+log = "0.4"
+env_logger = "0.7"
 
 [dev-dependencies]
-openssl = { version = "0.10", features = ["vendored"] }
 
 [profile.release]
 lto = true
