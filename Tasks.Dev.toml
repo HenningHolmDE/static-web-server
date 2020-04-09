@@ -2,6 +2,7 @@
 E_ARGS = "--port=8787"
 E_URL = "http://locahost"
 RUST_LOG = "gotham=info"
+SERVER_ASSETS = "/home/joseluisq/devel/labs/static-web-server/assets"
 
 [tasks.watch]
 command = "cargo"
