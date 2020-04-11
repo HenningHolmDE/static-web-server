@@ -2,6 +2,7 @@ use structopt::StructOpt;
 
 mod config;
 mod handlers;
+mod helpers;
 
 use crate::config::Options;
 use crate::handlers::RouterHandler;
