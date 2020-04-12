@@ -94,6 +94,12 @@ impl RouterHandler {
                         .with_gzip(true)
                         .build(),
                 );
+
+                // Server info
+                let listen = format!("{}{}{}", opts.host.to_string(), ":", opts.port.to_string());
+                println!("[INFO] static-web-server listening at {}", &listen);
+                println!("[INFO] root endpoint    ->  HEAD,GET  /");
+                println!("[INFO] assets endpoint  ->  HEAD,GET  {}", &assets_route);
             });
         })
     }
