@@ -71,8 +71,17 @@ impl RouterHandler {
                 );
             });
 
-            // TODO: use assets basedir as router name
-            route.associate("/assets/*", |assoc| {
+            let assets_dirname = match assets_dir.iter().last() {
+                None => {
+                    println!("error: assets directory name was not determined");
+                    std::process::exit(1);
+                }
+                Some(val) => val.to_str().unwrap().to_string(),
+            };
+
+            // Use assets base directory name as route endpoint
+            let assets_route = &format!("/{}/*", assets_dirname);
+            route.associate(assets_route, |assoc| {
                 assoc.head().to_dir(
                     FileOptions::new(&assets_dir)
                         .with_cache_control("no-cache")
