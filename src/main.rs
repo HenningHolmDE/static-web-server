@@ -1,17 +1,22 @@
+#[macro_use]
+extern crate log;
+
 use structopt::StructOpt;
 
 mod config;
 mod handlers;
 mod helpers;
+mod logger;
 
 use crate::config::Options;
 use crate::handlers::RouterHandler;
 
 pub fn main() {
-    env_logger::init();
-
     let opts = Options::from_args();
-    let addr = format!("{}{}{}", opts.host.to_string(), ":", opts.port.to_string());
+
+    logger::init(&opts.log_level);
+
+    let addr = format!("{}{}{}", &opts.host, ":", &opts.port);
     let router = RouterHandler::new(opts);
 
     gotham::start(addr, router.handle())

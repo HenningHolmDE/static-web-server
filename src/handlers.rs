@@ -8,6 +8,7 @@ use log::Level;
 
 use crate::config::Options;
 use crate::helpers;
+use crate::logger;
 
 pub struct RouterHandler {
     opts: Options,
@@ -31,7 +32,7 @@ impl RouterHandler {
         // Check the root directory
         let root_dir = match helpers::validate_dirpath(&opts.root) {
             Err(err) => {
-                println!("{}", helpers::path_error_fmt(err, "root", &opts.root));
+                error!("{}", helpers::path_error_fmt(err, "root", &opts.root));
                 std::process::exit(1);
             }
             Ok(val) => val,
@@ -39,7 +40,7 @@ impl RouterHandler {
         // Check the assets directory
         let assets_dir = match helpers::validate_dirpath(&opts.assets) {
             Err(err) => {
-                println!("{}", helpers::path_error_fmt(err, "assets", &opts.assets));
+                error!("{}", helpers::path_error_fmt(err, "assets", &opts.assets));
                 std::process::exit(1);
             }
             Ok(val) => val,
@@ -73,7 +74,7 @@ impl RouterHandler {
 
             let assets_dirname = match assets_dir.iter().last() {
                 None => {
-                    println!("error: assets directory name was not determined");
+                    error!("assets directory name was not determined");
                     std::process::exit(1);
                 }
                 Some(val) => val.to_str().unwrap().to_string(),
@@ -95,11 +96,16 @@ impl RouterHandler {
                         .build(),
                 );
 
+                let listen = format!("{}{}{}", &opts.host, ":", &opts.port);
+                let proto = if opts.tls { "HTTPS" } else { "HTTP" };
+
                 // Server info
-                let listen = format!("{}{}{}", opts.host.to_string(), ":", opts.port.to_string());
-                println!("[INFO] static-web-server listening at {}", &listen);
-                println!("[INFO] root endpoint    ->  HEAD,GET  /");
-                println!("[INFO] assets endpoint  ->  HEAD,GET  {}", &assets_route);
+                logger::log_server(&format!(
+                    "Static {} Server \"{}\" is listening on {}",
+                    proto, opts.name, listen
+                ));
+                logger::log_server("Root endpoint   -> HEAD,GET /");
+                logger::log_server(&format!("Assets endpoint -> HEAD,GET {}", &assets_route));
             });
         })
     }

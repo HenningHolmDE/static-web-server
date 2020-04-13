@@ -1,7 +1,7 @@
 [env]
 E_ARGS = "--port=8787"
 E_URL = "http://locahost"
-RUST_LOG = "gotham=info"
+SERVER_LOG_LEVEL = "debug"
 SERVER_ROOT = "./public"
 SERVER_ASSETS = "./public/assets"
 

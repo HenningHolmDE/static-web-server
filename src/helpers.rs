@@ -20,9 +20,7 @@ where
 /// Format a `PathError` description
 pub fn path_error_fmt(err: PathError, dirname: &str, dirpath: &str) -> String {
     match err {
-        PathError::PathNotFound => format!("error: {} path \"{}\" was not found", dirname, dirpath),
-        PathError::NotDirectory => {
-            format!("error: {} path \"{}\" is not a directory", dirname, dirpath)
-        }
+        PathError::PathNotFound => format!("{} path \"{}\" was not found", dirname, dirpath),
+        PathError::NotDirectory => format!("{} path \"{}\" is not a directory", dirname, dirpath),
     }
 }
