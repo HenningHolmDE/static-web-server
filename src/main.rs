@@ -21,3 +21,40 @@ pub fn main() {
 
     gotham::start(addr, router.handle())
 }
+
+#[cfg(test)]
+mod tests {
+    extern crate http;
+
+    use super::*;
+    use gotham::test::TestServer;
+    use http::StatusCode;
+
+    #[test]
+    fn receive_router_response() {
+        let opts = Options::from_args();
+        let router = RouterHandler::new(opts);
+        let test_server = TestServer::new(router.handle()).unwrap();
+        let response = test_server
+            .client()
+            .get("http://localhost")
+            .perform()
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[test]
+    fn receive_404_response() {
+        let opts = Options::from_args();
+        let router = RouterHandler::new(opts);
+        let test_server = TestServer::new(router.handle()).unwrap();
+        let response = test_server
+            .client()
+            .get("http://localhost/dummy")
+            .perform()
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+}

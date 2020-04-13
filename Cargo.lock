@@ -1130,6 +1130,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "gotham",
+ "http",
  "log",
  "nix",
  "signal",
