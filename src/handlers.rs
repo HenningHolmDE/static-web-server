@@ -52,25 +52,17 @@ impl RouterHandler {
         // Routes configuration (GET & HEAD)
         build_router(chain, pipelines, |route| {
             // Root route configuration
-            route.associate("/", |assoc| {
-                assoc.head().to_file(&index_file);
-                assoc.get().to_file(&index_file);
-            });
+            route.get_or_head("/").to_file(&index_file);
+
             // Root wilcard configuration
-            route.associate("/*", |assoc| {
-                assoc.head().to_dir(
-                    FileOptions::new(&root_dir)
-                        .with_cache_control("no-cache")
-                        .with_gzip(true)
-                        .build(),
-                );
-                assoc.get().to_dir(
-                    FileOptions::new(&root_dir)
-                        .with_cache_control("no-cache")
-                        .with_gzip(true)
-                        .build(),
-                );
-            });
+            route.get_or_head("/*").to_dir(
+                FileOptions::new(&root_dir)
+                    .with_cache_control("no-cache")
+                    .with_gzip(true)
+                    .build(),
+            );
+
+            // route.add_response_extender(StatusCode::NOT_FOUND, ErrorExtender);
 
             let assets_dirname = match assets_dir.iter().last() {
                 None => {
@@ -82,31 +74,24 @@ impl RouterHandler {
 
             // Use assets base directory name as route endpoint
             let assets_route = &format!("/{}/*", assets_dirname);
-            route.associate(assets_route, |assoc| {
-                assoc.head().to_dir(
-                    FileOptions::new(&assets_dir)
-                        .with_cache_control("no-cache")
-                        .with_gzip(true)
-                        .build(),
-                );
-                assoc.get().to_dir(
-                    FileOptions::new(&assets_dir)
-                        .with_cache_control("no-cache")
-                        .with_gzip(true)
-                        .build(),
-                );
 
-                let listen = format!("{}{}{}", &opts.host, ":", &opts.port);
-                let proto = if opts.tls { "HTTPS" } else { "HTTP" };
+            route.get_or_head("/").to_dir(
+                FileOptions::new(&assets_dir)
+                    .with_cache_control("no-cache")
+                    .with_gzip(true)
+                    .build(),
+            );
 
-                // Server info
-                logger::log_server(&format!(
-                    "Static {} Server \"{}\" is listening on {}",
-                    proto, opts.name, listen
-                ));
-                logger::log_server("Root endpoint   -> HEAD,GET /");
-                logger::log_server(&format!("Assets endpoint -> HEAD,GET {}", &assets_route));
-            });
+            let listen = format!("{}{}{}", &opts.host, ":", &opts.port);
+            let proto = if opts.tls { "HTTPS" } else { "HTTP" };
+
+            // Server info
+            logger::log_server(&format!(
+                "Static {} Server \"{}\" is listening on {}",
+                proto, opts.name, listen
+            ));
+            logger::log_server("Root endpoint   -> HEAD,GET /");
+            logger::log_server(&format!("Assets endpoint -> HEAD,GET {}", &assets_route));
         })
     }
 }
