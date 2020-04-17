@@ -86,12 +86,17 @@ impl RouterHandler {
             );
 
             // Root route configuration
-            route.get_or_head("/").to_file(&index_file);
+            route.get_or_head("/").to_file(
+                FileOptions::new(&index_file)
+                    .with_cache_control("public, max-age=86400")
+                    .with_gzip(true)
+                    .build(),
+            );
 
             // Root wilcard configuration
             route.get_or_head("/*").to_dir(
                 FileOptions::new(&root_dir)
-                    .with_cache_control("no-cache")
+                    .with_cache_control("public, max-age=86400")
                     .with_gzip(true)
                     .build(),
             );
@@ -107,9 +112,9 @@ impl RouterHandler {
             // Use assets base directory name as route endpoint
             let assets_route = &format!("/{}/*", assets_dirname);
 
-            route.get_or_head("/").to_dir(
+            route.get_or_head(assets_route).to_dir(
                 FileOptions::new(&assets_dir)
-                    .with_cache_control("no-cache")
+                    .with_cache_control("public, max-age=86400")
                     .with_gzip(true)
                     .build(),
             );
@@ -123,7 +128,7 @@ impl RouterHandler {
                 proto, opts.name, listen
             ));
             logger::log_server("Root endpoint   -> HEAD,GET /");
-            logger::log_server(&format!("Assets endpoint -> HEAD,GET {}", &assets_route));
+            logger::log_server(&format!("Assets endpoint -> HEAD,GET {}", assets_route));
         })
     }
 }
