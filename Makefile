@@ -215,9 +215,19 @@ promote:
 	@drone build promote joseluisq/static-web-server $(BUILD) $(ENV)
 .PHONY: promote
 
-loadtest:
+loadtest1:
 	@echo "GET http://localhost:8787" | \
-		vegeta -cpus=12 attack -workers=10 -duration=60s -connections=10000 -rate=200 -http2=false > results.bin
-	@cat results.bin | vegeta report -type='hist[0,2ms,4ms,6ms]'
+		vegeta \
+			attack \
+				-workers=12 \
+				-duration=10s \
+				-connections=100 \
+				-http2=false \
+					> results.bin
+	@cat results.bin | vegeta report -type='text'
 	@cat results.bin | vegeta plot > plot.html
-.PHONY: loadtest
+.PHONY: loadtest1
+
+loadtest2:
+	@wrk --latency -t12 -c100 -d10s http://localhost:8787
+.PHONY: loadtest2

@@ -23,15 +23,13 @@ include = ["src/**/*", "Cargo.toml", "Cargo.lock"]
 
 [dependencies]
 gotham = "0.4.0"
+hyper = "0.12"
 structopt = "0.3"
 nix = "0.14"
 signal = "0.7"
 log = "0.4"
 env_logger = "0.7"
 chrono = "0.4"
-
-[dev-dependencies]
-http = "0.1"
 
 [profile.release]
 lto = true

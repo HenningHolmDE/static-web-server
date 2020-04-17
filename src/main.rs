@@ -4,6 +4,7 @@ extern crate log;
 use structopt::StructOpt;
 
 mod config;
+mod error_page;
 mod handlers;
 mod helpers;
 mod logger;
@@ -26,7 +27,7 @@ pub fn main() {
 mod tests {
     use super::*;
     use gotham::test::TestServer;
-    use http::StatusCode;
+    use hyper::StatusCode;
 
     #[test]
     fn receive_ok_head_response() {

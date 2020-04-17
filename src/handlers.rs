@@ -1,12 +1,14 @@
 use gotham::handler::assets::FileOptions;
 use gotham::middleware::logger::SimpleLogger;
 use gotham::pipeline::new_pipeline;
-use gotham::pipeline::single::single_pipeline;
+use gotham::pipeline::set::{finalize_pipeline_set, new_pipeline_set};
 use gotham::router::builder::*;
 use gotham::router::Router;
+use hyper::StatusCode;
 use log::Level;
 
 use crate::config::Options;
+use crate::error_page::{ErrorPage404, ErrorPage50x};
 use crate::helpers;
 use crate::logger;
 
@@ -22,9 +24,11 @@ impl RouterHandler {
 
     /// Handle the server router configuration
     pub fn handle(&self) -> Router {
-        // Setup logging
-        let (chain, pipelines) =
-            single_pipeline(new_pipeline().add(SimpleLogger::new(Level::Info)).build());
+        let pipelines = new_pipeline_set();
+
+        // Setup logging middleware
+        let (pipelines, default) =
+            pipelines.add(new_pipeline().add(SimpleLogger::new(Level::Info)).build());
 
         // Options definition
         let opts = &self.opts;
@@ -49,8 +53,38 @@ impl RouterHandler {
         // Default index html file
         let index_file = format!("{}/index.html", &root_dir.display());
 
+        // Setup custom error pages middleware
+        // let (pipelines, extended) = pipelines.add(
+        //     new_pipeline()
+        //         .add(ErrorPageMiddleware::new(&opts.page404, &opts.page50x))
+        //         .build(),
+        // );
+
+        // Setup middleware pipelines
+        let pipeline_set = finalize_pipeline_set(pipelines);
+        let default_chain = (default, ());
+        // let extended_chain = (extended, default_chain);
+
         // Routes configuration (GET & HEAD)
-        build_router(chain, pipelines, |route| {
+        build_router(default_chain, pipeline_set, |route| {
+            // Custom error pages based on HTTP status
+            // HTTP status 404
+            route.add_response_extender(StatusCode::NOT_FOUND, ErrorPage404::new(&opts.page404));
+            // HTTP status 50x
+            route.add_response_extender(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ErrorPage50x::new(&opts.page50x),
+            );
+            route.add_response_extender(StatusCode::BAD_GATEWAY, ErrorPage50x::new(&opts.page50x));
+            route.add_response_extender(
+                StatusCode::SERVICE_UNAVAILABLE,
+                ErrorPage50x::new(&opts.page50x),
+            );
+            route.add_response_extender(
+                StatusCode::GATEWAY_TIMEOUT,
+                ErrorPage50x::new(&opts.page50x),
+            );
+
             // Root route configuration
             route.get_or_head("/").to_file(&index_file);
 
@@ -61,8 +95,6 @@ impl RouterHandler {
                     .with_gzip(true)
                     .build(),
             );
-
-            // route.add_response_extender(StatusCode::NOT_FOUND, ErrorExtender);
 
             let assets_dirname = match assets_dir.iter().last() {
                 None => {
